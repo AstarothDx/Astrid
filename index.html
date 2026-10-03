@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
+<title>Astrid · Mini App</title>
+<meta name="description" content="Astrid — una presencia gótica de barrio para tus grupos de Telegram.">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0c;
+  --bg2: #121216;
+  --bg3: #1a1a20;
+  --border: #2a2a32;
+  --text: #e8e6e3;
+  --muted: #9a9690;
+  --accent: #c45c8a;
+  --accent2: #8b5cf6;
+  --green: #4ade80;
+  --radius: 14px;
+  --font: Inter, system-ui, sans-serif;
+  --display: "Space Grotesk", var(--font);
+  --tg-viewport-height: 100vh;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; background: var(--bg); }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: var(--tg-viewport-height);
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior-y: none;
+  position: relative;
+}
+
+/* Fondo brush negro → morado */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 120% 80% at 10% -10%, rgba(139, 92, 246, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 70% at 95% 20%, rgba(196, 92, 138, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(88, 40, 140, 0.22) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
+    linear-gradient(165deg, #0a0a0c 0%, #0d0a12 25%, #120e1a 50%, #0c0a10 75%, #0a0a0c 100%);
+  pointer-events: none;
+}
+
+/* Textura / brush strokes sutiles */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.045;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.telegram-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(.7rem, env(safe-area-inset-top)) 1rem .7rem;
+  background: rgba(10, 10, 12, .88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.tg-user { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+.tg-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  object-fit: cover; background: var(--bg3);
+  border: 1px solid var(--border); display: none;
+}
+.tg-avatar.visible { display: block; }
+.tg-user-info { min-width: 0; }
+.tg-user-name {
+  font-size: .85rem; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
+}
+.tg-user-status { color: var(--muted); font-size: .7rem; }
+.tg-close {
+  border: 1px solid var(--border); background: var(--bg3); color: var(--text);
+  padding: .4rem .75rem; border-radius: 999px;
+  font-family: inherit; font-size: .78rem; font-weight: 600; cursor: pointer;
+}
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 1.25rem 4rem; position: relative; z-index: 1; }
+header.hero { padding: 3rem 0; text-align: center; }
+.badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 999px; padding: .35rem .9rem;
+  font-size: .8rem; color: var(--muted); margin-bottom: 1.5rem;
+}
+.badge span { color: var(--green); }
+h1 {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-bottom: .75rem;
+}
+h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.tagline { color: var(--muted); font-size: 1.1rem; max-width: 560px; margin: 0 auto 2rem; }
+.welcome-user { display: none; margin: -.75rem auto 1.5rem; color: var(--muted); font-size: .9rem; }
+.welcome-user strong { color: var(--text); }
+.cta-row { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  padding: .7rem 1.25rem; min-height: 44px; border-radius: 999px;
+  font-weight: 600; font-size: .95rem; text-decoration: none;
+  border: 1px solid transparent; transition: .15s; cursor: pointer; font-family: inherit;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), #a855f7); color: #fff; }
+.btn-ghost { background: var(--bg3); border-color: var(--border); color: var(--text); }
+.btn-donate {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff; border: none;
+}
+section { margin-top: 3.5rem; scroll-margin-top: 80px; }
+h2 {
+  font-family: var(--display); font-size: 1.45rem; font-weight: 600;
+  margin-bottom: 1.25rem; display: flex; align-items: center; gap: .5rem;
+}
+h2:before {
+  content: ""; width: 4px; height: 1.1em;
+  background: linear-gradient(var(--accent), var(--accent2)); border-radius: 2px;
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.card {
+  background: rgba(18, 18, 22, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem 1.35rem; transition: .2s;
+  backdrop-filter: blur(8px);
+}
+.card:hover { border-color: #3f3f4a; transform: translateY(-2px); }
+.card .icon { font-size: 1.5rem; margin-bottom: .6rem; }
+.card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: .35rem; }
+.card p { font-size: .9rem; color: var(--muted); }
+.personality {
+  background: linear-gradient(145deg, rgba(22, 22, 28, 0.9), rgba(28, 21, 32, 0.9));
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.5rem 1.75rem; position: relative; overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.personality ul { list-style: none; display: grid; gap: .55rem; margin-top: 1rem; }
+.personality li { display: flex; gap: .6rem; font-size: .95rem; color: var(--muted); }
+.personality li:before {
+  content: "◆"; color: var(--accent); font-size: .55rem; margin-top: .45rem;
+}
+.personality li strong { color: var(--text); font-weight: 500; }
+.cmd-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.cmd-table th, .cmd-table td {
+  text-align: left; padding: .75rem .85rem; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.cmd-table th {
+  color: var(--muted); font-weight: 500; font-size: .8rem; text-transform: uppercase;
+}
+.cmd-table code {
+  background: var(--bg3); padding: .15rem .45rem; border-radius: 6px;
+  font-size: .85rem; color: var(--accent); white-space: nowrap;
+}
+.cmd-table .desc { color: var(--muted); font-size: .88rem; line-height: 1.5; }
+.cmd-table .usage { color: var(--text); font-size: .82rem; margin-top: .3rem; }
+.cmd-table .aliases { color: var(--muted); font-size: .78rem; margin-top: .2rem; }
+.cmd-wrap {
+  background: rgba(18, 18, 22, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.tabs {
+  display: flex; flex-wrap: wrap; gap: .35rem; padding: .75rem;
+  border-bottom: 1px solid var(--border); background: rgba(26, 26, 32, 0.9);
+}
+.tab {
+  padding: .4rem .9rem; border-radius: 999px; border: none;
+  background: transparent; color: var(--muted); font-size: .85rem;
+  font-weight: 500; cursor: pointer; font-family: inherit;
+}
+.tab.active { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.tab-panel { display: none; padding: .5rem 0; overflow-x: auto; }
+.tab-panel.active { display: block; }
+.tech-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip {
+  background: rgba(26, 26, 32, 0.9); border: 1px solid var(--border);
+  border-radius: 8px; padding: .4rem .75rem; font-size: .85rem; color: var(--muted);
+}
+.chip strong { color: var(--text); }
+.donate-card {
+  background: linear-gradient(145deg, rgba(26, 21, 32, 0.95), rgba(22, 22, 28, 0.95));
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.75rem; text-align: center;
+  backdrop-filter: blur(8px);
+}
+.donate-card h3 { font-family: var(--display); font-size: 1.25rem; margin-bottom: .75rem; }
+.donate-card p { color: var(--muted); font-size: .95rem; margin-bottom: 1.25rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+.donate-actions { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+.creator-box {
+  background: rgba(18, 18, 22, 0.85); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem 1.75rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem;
+  backdrop-filter: blur(8px);
+}
+.creator-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.creator-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: .2rem; }
+.creator-info p { color: var(--muted); font-size: .9rem; }
+.creator-info .id { font-family: monospace; color: var(--accent); font-size: .85rem; margin-top: .35rem; }
+.detail-list { list-style: none; display: grid; gap: .8rem; margin-top: 1rem; }
+.detail-list li {
+  background: rgba(18, 18, 22, 0.85); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.15rem;
+  backdrop-filter: blur(8px);
+}
+.detail-list li strong { color: var(--text); display: block; margin-bottom: .25rem; }
+.detail-list li span { color: var(--muted); font-size: .9rem; }
+footer {
+  margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border);
+  text-align: center; color: var(--muted); font-size: .9rem;
+}
+@media (max-width: 600px) {
+  header.hero { padding-top: 2.5rem; }
+  .wrap { padding-left: 1rem; padding-right: 1rem; }
+  .cmd-table { min-width: 520px; }
+  .personality { padding: 1.25rem; }
+  .creator-box { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+<div class="telegram-bar">
+  <div class="tg-user">
+    <img id="tgAvatar" class="tg-avatar" alt="Avatar">
+    <div class="tg-user-info">
+      <div id="tgUserName" class="tg-user-name">Astrid</div>
+      <div id="tgUserStatus" class="tg-user-status">Telegram Mini App</div>
+    </div>
+  </div>
+  <button id="tgClose" class="tg-close" type="button">Cerrar</button>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="badge"><span>●</span> Online · Siempre despierta... cuando quiere</div>
+    <h1>Hola, soy <em>Astrid</em></h1>
+    <p id="welcomeUser" class="welcome-user">Bienvenido, <strong id="welcomeName"></strong>.</p>
+    <p class="tagline">Una chica gótica de barrio que terminó viviendo dentro de Telegram. Tiene sus propias reglas, sus manías y una memoria bastante mejor de la que probablemente debería.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#comandos">Ver comandos</a>
+      <a class="btn btn-ghost" href="#personalidad">Conocerla</a>
+      <a class="btn btn-donate" href="#apoyar">Apoyar a Astrid</a>
+    </div>
+  </header>
+
+  <!-- Qué hace -->
+  <section>
+    <h2>¿Qué hace?</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">💬</div>
+        <h3>Conversación natural</h3>
+        <p>Habla en español mexicano, entiende el contexto del chat y no siente la necesidad de contestar absolutamente todo. Responde cuando le da la gana o cuando le hablas directamente.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h3>Memoria persistente</h3>
+        <p>Recuerda personas, relaciones, momentos y detalles importantes. Las conversaciones no empiezan siempre desde cero: sabe quién eres y cómo te has llevado con ella.</p>
+      </div>
+      <div class="card">
+        <div class="icon">👁️</div>
+        <h3>Ve y escucha</h3>
+        <p>Interpreta imágenes, stickers, GIFs y videos. También entiende notas de voz gracias a Whisper, así que puedes hablarle sin escribir.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🗣️</div>
+        <h3>Tiene voz propia</h3>
+        <p>Puede responder con notas de voz generadas con Cartesia Sonic. No es texto leído: tiene tono, pausas y carácter.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🛡️</div>
+        <h3>Cuida el grupo</h3>
+        <p>Moderación automática y manual: detecta contenido problemático, administra advertencias, bans, mutes y mantiene las reglas bajo control según el modo del grupo.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎮</div>
+        <h3>Juegos y social</h3>
+        <p>Dados, moneda, 8ball, piedra-papel-tijera, slots, ship, retos, roasts, cumplidos y acciones como /pat o /hug que afectan la relación contigo.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📊</div>
+        <h3>Reputación y perfil</h3>
+        <p>Sistema de afinidad, reputación y ranking. Cuanto más interactúas (y mejor te portas), más cambia cómo te trata.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚙️</div>
+        <h3>Modos por grupo</h3>
+        <p>Normal (conversa + modera), Moderada (más seria y estricta) o Guardian (solo seguridad, sin charla). Se adapta al ambiente del chat.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Personalidad -->
+  <section id="personalidad">
+    <h2>¿Cómo es Astrid?</h2>
+    <div class="personality">
+      <p style="color:var(--muted);font-size:.95rem">No está diseñada para comportarse como una asistente tradicional. Astrid tiene una personalidad propia: gótica, reservada, segura, sarcástica y bastante selectiva con sus palabras.</p>
+      <ul>
+        <li><strong>Habla</strong> — wey, nmms, alv, qué pedo, chale, pinche y demás. Español mexicano de barrio, no de tutorial.</li>
+        <li><strong>Breve</strong> — normalmente una frase basta. No escribe párrafos de relleno.</li>
+        <li><strong>Observadora</strong> — no todo merece una respuesta. A veces solo mira y se calla.</li>
+        <li><strong>Directa</strong> — si algo le molesta, no necesita un ensayo para dejarlo claro.</li>
+        <li><strong>Picardía</strong> — aparece cuando el contexto lo permite, no porque sí.</li>
+        <li><strong>Sin modo asistente</strong> — nada de respuestas robóticas, listas numeradas ni frases prefabricadas de “¡Claro! ¿En qué más te ayudo?”.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Funciones detalladas -->
+  <section id="funciones">
+    <h2>Todo lo que puede hacer</h2>
+    <ul class="detail-list">
+      <li>
+        <strong>💬 Conversación con contexto</strong>
+        <span>Responde en el hilo del chat, entiende menciones, replies y el tono del grupo. Puede ignorar mensajes que no le interesan. Usa /ask (o /ai, /askastrid) para hablarle directamente si no está respondiendo sola.</span>
+      </li>
+      <li>
+        <strong>🧠 Memoria por usuario</strong>
+        <span>Guarda detalles sobre ti: cómo te presentaste, cosas que le contaste, tu relación con ella y con otros. Consulta con /memoria y borra con /olvidar. También tiene /perfil para ver afinidad e interacción.</span>
+      </li>
+      <li>
+        <strong>👁️ Visión y audio</strong>
+        <span>Analiza fotos, stickers, GIFs y videos cortos. Transcribe notas de voz con Whisper y puede responderte por voz con /tts o cuando el modo de voz esté activo en el grupo.</span>
+      </li>
+      <li>
+        <strong>🛡️ Moderación completa</strong>
+        <span>Ban, kick, mute, unmute, warn, eliminar advertencias, borrar mensajes, purge, pin/unpin, slowmode. Detecta contenido problemático con filtros + IA. Los admins tienen herramientas; el owner tiene control global.</span>
+      </li>
+      <li>
+        <strong>🎮 Juegos y entretenimiento</strong>
+        <span>/8ball, /dado, /moneda, /roll, /rps, /slots, /roulette, /ship, /truth, /dare, /fortune, /joke, /fact, /roast, /compliment. Acciones sociales (/pat, /hug, /bonk, /poke) que afectan la relación.</span>
+      </li>
+      <li>
+        <strong>📊 Sistema de reputación</strong>
+        <span>/reputacion y /ranking. Tu comportamiento, advertencias e interacciones influyen en cómo te percibe y en tu posición frente a otros del grupo.</span>
+      </li>
+      <li>
+        <strong>⚙️ Personalización por grupo</strong>
+        <span>Modos Normal / Moderada / Guardian. Stickers personalizados, palabras prohibidas, reglas del chat (/rules), voz on/off. El owner puede ajustar el aprendizaje de estilo y enviar mensajes manuales.</span>
+      </li>
+      <li>
+        <strong>⏱️ Tareas automáticas</strong>
+        <span>JobQueue para recordatorios, limpiezas y acciones programadas sin que nadie esté pendiente.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- Comandos -->
+  <section id="comandos">
+    <h2>Comandos</h2>
+    <div class="cmd-wrap">
+      <div class="tabs">
+        <button class="tab active" data-tab="todos">Todos</button>
+        <button class="tab" data-tab="admin">Admins</button>
+        <button class="tab" data-tab="owner">Owner</button>
+        <button class="tab" data-tab="social">Social / juegos</button>
+      </div>
+
+      <!-- Panel Todos -->
+      <div class="tab-panel active" id="panel-todos">
+        <table class="cmd-table">
+          <thead>
+            <tr><th>Comando</th><th>Para qué sirve</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/ask</code></td>
+              <td>
+                <div class="desc">Habla directamente con Astrid. Úsalo cuando quieras una respuesta suya sin depender de que ella decida intervenir sola en el chat.</div>
+                <div class="usage">Ejemplo: <code>/ask qué opinas de esto?</code></div>
+                <div class="aliases">Aliases: /ai · /askastrid</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/mood</code></td>
+              <td>
+                <div class="desc">Consulta el estado de ánimo actual de Astrid. Puede cambiar según interacciones, hora o eventos del grupo; no es fijo.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/perfil</code></td>
+              <td>
+                <div class="desc">Muestra tu relación con Astrid: afinidad, nivel de interacción, cómo te percibe y datos relevantes de tu historial con ella.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/memoria</code></td>
+              <td>
+                <div class="desc">Consulta lo que Astrid recuerda de ti (detalles, momentos, preferencias). Para borrar lo que tiene guardado usa /olvidar.</div>
+                <div class="aliases">Relacionado: /olvidar</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/reputacion</code></td>
+              <td>
+                <div class="desc">Consulta tu reputación en el grupo. Se ve afectada por advertencias, moderación y comportamiento general.</div>
+                <div class="aliases">Relacionado: /ranking</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/tts</code></td>
+              <td>
+                <div class="desc">Convierte un texto en una nota de voz con la voz de Astrid. Ideal para cuando quieres que “hable” algo concreto.</div>
+                <div class="usage">Ejemplo: <code>/tts neta que sí wey</code> · Máx. ~280 caracteres</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/info</code></td>
+              <td>
+                <div class="desc">Ficha de un usuario: ID de Telegram, estado, advertencias acumuladas y datos básicos útiles para moderación o curiosidad.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/help</code></td>
+              <td>
+                <div class="desc">Muestra la ayuda adaptada a tu rol (usuario, admin u owner). Lista los comandos que puedes usar según tus permisos.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/rules</code></td>
+              <td>
+                <div class="desc">Consulta las reglas configuradas del grupo. Útil para recordar qué está permitido y qué no sin preguntar a los admins.</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Panel Admins -->
+      <div class="tab-panel" id="panel-admin">
+        <table class="cmd-table">
+          <thead>
+            <tr><th>Comando</th><th>Para qué sirve</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/ban</code> · <code>/kick</code> · <code>/mute</code> · <code>/unmute</code></td>
+              <td>
+                <div class="desc">Herramientas básicas de moderación. Ban expulsa de forma permanente (o hasta unban), kick saca del grupo, mute silencia temporal o indefinidamente, unmute restaura el derecho a escribir.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/warn</code> · <code>/delwarn</code> · <code>/delban</code></td>
+              <td>
+                <div class="desc">Sistema de advertencias. /warn suma un strike; al llegar al límite puede escalar a sanción. /delwarn quita advertencias; /delban limpia registros de ban.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/del</code> · <code>/purge</code></td>
+              <td>
+                <div class="desc">/del elimina el mensaje al que respondes. /purge borra un rango de mensajes recientes (útil para limpiar spam o discusiones).</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/pin</code> · <code>/unpin</code> · <code>/slowmode</code></td>
+              <td>
+                <div class="desc">Control del chat: fijar o desfijar mensajes importantes, y activar/ajustar el modo lento para limitar la frecuencia de mensajes.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/chatinfo</code></td>
+              <td>
+                <div class="desc">Información y configuración actual del grupo: modo de Astrid, reglas, estado de voz, filtros y datos útiles para admins.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/voicemode on|off</code></td>
+              <td>
+                <div class="desc">Activa o desactiva las notas de voz de Astrid en el grupo. Cuando está off, solo responde por texto (salvo /tts manual si está permitido).</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/addsticker</code> · <code>/addprohibida</code></td>
+              <td>
+                <div class="desc">Personalización: añade stickers favoritos o palabras/frases prohibidas al filtro del grupo para que Astrid las detecte y actúe.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/report</code></td>
+              <td>
+                <div class="desc">Envía un reporte a la dueña (owner) sobre un problema, abuso o situación que requiera atención fuera del grupo.</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Panel Owner -->
+      <div class="tab-panel" id="panel-owner">
+        <table class="cmd-table">
+          <thead>
+            <tr><th>Comando</th><th>Para qué sirve</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/menu</code></td>
+              <td>
+                <div class="desc">Panel privado de administración del bot. Acceso a controles avanzados, estado global y opciones que no están disponibles para admins normales.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/estilo</code></td>
+              <td>
+                <div class="desc">Control del aprendizaje de estilo de Astrid: cómo ajusta su forma de hablar según el grupo y las interacciones. Permite afinar o limitar ese aprendizaje.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/userban</code> · <code>/unban</code></td>
+              <td>
+                <div class="desc">Control de acceso global. Bloquea o desbloquea a un usuario en todos los grupos donde esté Astrid (no solo en el chat actual).</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/msg</code></td>
+              <td>
+                <div class="desc">Envía un mensaje manualmente a un grupo como si fuera Astrid. Útil para avisos, correcciones o intervenciones del owner.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/donar</code></td>
+              <td>
+                <div class="desc">Inicia el flujo de donaciones mediante Telegram Stars. Permite a los usuarios apoyar el mantenimiento y desarrollo de Astrid.</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Panel Social -->
+      <div class="tab-panel" id="panel-social">
+        <table class="cmd-table">
+          <thead>
+            <tr><th>Comando</th><th>Para qué sirve</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/8ball</code> · <code>/dado</code> · <code>/moneda</code> · <code>/roll</code></td>
+              <td>
+                <div class="desc">Azar clásico. /8ball responde preguntas sí/no con estilo; /dado tira dados; /moneda cara o cruz; /roll números aleatorios con rango opcional.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/ship</code> · <code>/rps</code> · <code>/slots</code> · <code>/roulette</code></td>
+              <td>
+                <div class="desc">Juegos sociales. /ship calcula “compatibilidad” entre dos personas; /rps es piedra-papel-tijera; /slots máquina tragamonedas; /roulette ruleta simple.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/pat</code> · <code>/hug</code> · <code>/bonk</code> · <code>/poke</code></td>
+              <td>
+                <div class="desc">Acciones que afectan la relación con Astrid (y a veces entre usuarios). Un /pat o /hug puede subir afinidad; un /bonk es más juguetón/agresivo.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/joke</code> · <code>/fact</code> · <code>/roast</code> · <code>/compliment</code></td>
+              <td>
+                <div class="desc">Contenido generado: chistes, datos curiosos, roasts (insultos juguetones) y cumplidos. El tono sigue la personalidad de Astrid.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/truth</code> · <code>/dare</code> · <code>/fortune</code></td>
+              <td>
+                <div class="desc">Verdad o reto clásico, y /fortune para una “fortuna” o predicción corta. Ideal para romper el hielo o perder el tiempo en el grupo.</div>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/cumple</code></td>
+              <td>
+                <div class="desc">Registra tu cumpleaños para que Astrid (o el sistema) pueda recordarlo y felicitarte cuando llegue la fecha.</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modos -->
+  <section>
+    <h2>Modos por grupo</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Normal</h3>
+        <p>Astrid conversa, participa en el chat, usa su personalidad y además ayuda con la moderación. Es el modo por defecto: presente pero no invasiva.</p>
+      </div>
+      <div class="card">
+        <h3>Moderada</h3>
+        <p>Versión más seria y estricta. Menos charla informal, más atención a las reglas y al tono del grupo. Pensada para espacios con normas más cuidadas.</p>
+      </div>
+      <div class="card">
+        <h3>Guardian</h3>
+        <p>Astrid deja de conversar y se concentra únicamente en la seguridad: filtros, detección de problemas y herramientas de moderación. Sin personalidad social.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Apoyar / Donar -->
+  <section id="apoyar">
+    <h2>Apoyar a Astrid</h2>
+    <div class="donate-card">
+      <h3>¿Quieres que siga online?</h3>
+      <p>
+        Astrid no es gratis de mantener: servidores, APIs de conversación y visión (OpenAI), transcripción (Whisper), voz (Cartesia) y tiempo de desarrollo. Si el bot te sirve en tu grupo o simplemente te cae bien, puedes apoyar con <strong>Telegram Stars</strong>.
+      </p>
+      <p style="margin-bottom:1.5rem;font-size:.9rem">
+        Las donaciones ayudan a cubrir costos de infraestructura, mejorar la memoria, la voz y las funciones de moderación, y a que Astrid siga teniendo su propia personalidad en lugar de convertirse en otro bot genérico.
+      </p>
+      <div class="donate-actions">
+        <a class="btn btn-donate" href="https://t.me/AstridBot?start=donate" target="_blank" rel="noopener">Donar con Telegram Stars</a>
+        <a class="btn btn-ghost" href="#comandos">Ver comando /donar</a>
+      </div>
+      <p style="margin-top:1.25rem;font-size:.82rem;color:var(--muted)">
+        También puedes usar el comando <code style="color:var(--accent)">/donar</code> dentro de un grupo o en privado con el bot.
+      </p>
+    </div>
+  </section>
+
+  <!-- Creador -->
+  <section id="creador">
+    <h2>Creador</h2>
+    <div class="creator-box">
+      <div class="creator-avatar">A</div>
+      <div class="creator-info">
+        <h3>Owner de Astrid</h3>
+        <p>Diseño, personalidad, moderación y todo lo que hace que Astrid no sea un bot más.</p>
+        <div class="id">Telegram ID: 8379363513</div>
+        <p style="margin-top:.5rem;font-size:.85rem">Variable de entorno: <code style="color:var(--accent)">ASTRID_OWNER_ID=8379363513</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech -->
+  <section>
+    <h2>Lo que hay detrás</h2>
+    <div class="tech-list">
+      <span class="chip"><strong>Python</strong> · Telegram Bot API</span>
+      <span class="chip"><strong>OpenAI</strong> · conversación y visión</span>
+      <span class="chip"><strong>Whisper</strong> · transcripción de voz</span>
+      <span class="chip"><strong>Cartesia Sonic 3.6</strong> · voz</span>
+      <span class="chip"><strong>SQLite</strong> · memoria y reputación</span>
+      <span class="chip"><strong>Moderación</strong> · filtros + IA</span>
+      <span class="chip"><strong>JobQueue</strong> · tareas automáticas</span>
+    </div>
+  </section>
+
+  <footer>
+    <p>Astrid · Bot de Telegram con personalidad propia</p>
+    <p style="margin-top:.4rem;font-size:.8rem">Una pequeña carta de presentación de alguien que probablemente preferiría no tener que presentarse.</p>
+    <p style="margin-top:.6rem;font-size:.75rem">Owner ID: 8379363513</p>
+  </footer>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+
+function initTelegram() {
+  if (!tg) {
+    console.warn('Telegram WebApp SDK no disponible.');
+    return;
+  }
+  tg.ready();
+  tg.expand();
+  if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
+  applyTelegramTheme();
+  loadTelegramUser();
+  document.getElementById('tgClose').onclick = () => tg.close();
+  updateViewport();
+  if (tg.onEvent) {
+    tg.onEvent('themeChanged', applyTelegramTheme);
+    tg.onEvent('viewportChanged', updateViewport);
+  }
+}
+
+function loadTelegramUser() {
+  const u = tg?.initDataUnsafe?.user;
+  if (!u) return;
+  const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Usuario de Telegram';
+  document.getElementById('tgUserName').textContent = name;
+  document.getElementById('tgUserStatus').textContent = u.username ? '@' + u.username : 'Telegram';
+  document.getElementById('welcomeName').textContent = name;
+  document.getElementById('welcomeUser').style.display = 'block';
+  if (u.photo_url) {
+    const a = document.getElementById('tgAvatar');
+    a.src = u.photo_url;
+    a.classList.add('visible');
+    a.onerror = () => a.classList.remove('visible');
+  }
+}
+
+function applyTelegramTheme() {
+  if (!tg) return;
+  const c = tg.themeParams || {};
+  const r = document.documentElement;
+  if (c.bg_color) r.style.setProperty('--bg', c.bg_color);
+  if (c.secondary_bg_color) r.style.setProperty('--bg2', c.secondary_bg_color);
+  if (c.text_color) r.style.setProperty('--text', c.text_color);
+  if (c.hint_color) r.style.setProperty('--muted', c.hint_color);
+}
+
+function updateViewport() {
+  if (tg) document.documentElement.style.setProperty('--tg-viewport-height', (tg.viewportHeight || innerHeight) + 'px');
+}
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+  if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+});
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTelegram);
+} else {
+  initTelegram();
+}
+</script>
+</body>
+</html>
