@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0910">
+<title>Astrid · Mini App</title>
+<meta name="description" content="Astrid · personalidad, memoria, estilo aprendido, multimedia, comandos y moderación.">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0910;--bg2:#121019;--bg3:#191521;--panel:#15111b;--border:#302638;
+  --text:#eee8f0;--muted:#a69cab;--accent:#c86a9b;--accent2:#8b6bd6;
+  --green:#62d49a;--amber:#e8ad63;--red:#df7488;--radius:18px;--font:Inter,system-ui,sans-serif;
+  --display:"Space Grotesk",var(--font);--tg-viewport-height:100vh;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.55;min-height:var(--tg-viewport-height);padding-bottom:env(safe-area-inset-bottom);-webkit-font-smoothing:antialiased}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+body:after{content:"✦";position:fixed;right:4vw;bottom:7vh;color:var(--accent);opacity:.06;font-size:9rem;pointer-events:none}
+.telegram-bar{position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:max(.7rem,env(safe-area-inset-top)) 1rem .7rem;background:rgba(11,9,16,.91);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.055)}
+.tg-user{display:flex;align-items:center;gap:.7rem;min-width:0}.tg-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--bg3);border:1px solid var(--border);display:none}.tg-avatar.visible{display:block}.tg-user-name{font-size:.88rem;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}.tg-user-status{font-size:.69rem;color:var(--muted)}
+.tg-close{border:1px solid var(--border);background:var(--bg3);color:var(--text);padding:.42rem .85rem;border-radius:999px;font:600 .78rem var(--font);cursor:pointer}
+.wrap{max-width:780px;margin:auto;padding:0 1.1rem 4.5rem}.hero{text-align:center;padding:2.6rem .2rem 1.7rem}.sigil{width:62px;height:62px;margin:0 auto 1rem;border:1px solid #49334b;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 40% 35%,#342039,#100d15);box-shadow:0 0 35px rgba(200,106,155,.08);font-size:1.55rem}.badge{display:inline-flex;align-items:center;gap:.45rem;border:1px solid var(--border);background:rgba(25,21,33,.75);border-radius:999px;padding:.35rem .8rem;font-size:.72rem;color:var(--muted);margin-bottom:1rem}.badge i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(98,212,154,.35)}
+h1{font-family:var(--display);font-size:clamp(2.1rem,8vw,3.2rem);letter-spacing:-.04em;line-height:1.08;margin-bottom:.7rem}h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}.tagline{max-width:42rem;margin:auto;color:var(--muted);font-size:.93rem}.welcome-user{display:none;margin:.7rem auto 0;color:var(--muted);font-size:.82rem}.welcome-user strong{color:var(--text)}
+.tabs-main{position:sticky;top:63px;z-index:900;margin:0 -.1rem 1.4rem;padding:.45rem;background:rgba(18,16,25,.92);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(14px);display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}.main-tab,.sub-tab{border:0;background:transparent;color:var(--muted);font:600 .78rem var(--font);padding:.65rem .45rem;border-radius:11px;cursor:pointer}.main-tab.active,.sub-tab.active{color:var(--text);background:var(--bg);box-shadow:inset 0 0 0 1px var(--border)}.tab-page{display:none}.tab-page.active{display:block;animation:fade .18s ease}@keyframes fade{from{opacity:.3;transform:translateY(3px)}to{opacity:1;transform:none}}
+.section-head{margin:1.5rem 0 1rem}.section-head h2{font-family:var(--display);font-size:1.28rem;margin-bottom:.35rem;display:flex;align-items:center;gap:.55rem}.section-head h2:before{content:"";width:3px;height:1.1em;background:linear-gradient(var(--accent),var(--accent2));border-radius:2px}.section-head p{color:var(--muted);font-size:.84rem;max-width:48rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.8rem}.card,.panel,.mode,.note,.cmd-wrap,.donate{background:linear-gradient(150deg,rgba(21,17,27,.98),rgba(18,16,25,.98));border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem}.card{position:relative;overflow:hidden}.card:after{content:"";position:absolute;right:-25px;top:-30px;width:90px;height:90px;border:1px solid rgba(200,106,155,.08);transform:rotate(45deg)}.icon{font-size:1.35rem;margin-bottom:.55rem}.card h3{font-size:.92rem;margin-bottom:.3rem}.card p,.mode p,.panel p,.note,.acc-body p,.acc-body li{font-size:.82rem;color:var(--muted);line-height:1.52}
+.traits{list-style:none;display:grid;gap:.85rem}.traits li{display:grid;grid-template-columns:auto 1fr;gap:.7rem}.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:.5rem}.traits strong{display:block;font-size:.86rem;margin-bottom:.15rem}.traits span{font-size:.81rem;color:var(--muted)}
+.acc{display:grid;gap:.6rem}.acc-item{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden}.acc-btn{width:100%;border:0;background:transparent;color:var(--text);padding:.9rem 1rem;text-align:left;font:600 .84rem var(--font);display:flex;justify-content:space-between;cursor:pointer}.chev{color:var(--muted);transition:.18s}.acc-item.open .chev{transform:rotate(180deg)}.acc-body{display:none;border-top:1px solid var(--border);padding:.9rem 1rem}.acc-item.open .acc-body{display:block}.acc-body ul{list-style:none;display:grid;gap:.35rem;margin-top:.55rem}.acc-body li:before{content:"·";color:var(--accent);margin-right:.45rem}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem}.chip{border:1px solid var(--border);background:var(--bg3);border-radius:9px;padding:.42rem .65rem;color:var(--muted);font-size:.74rem}.chip strong{color:var(--text)}code.inline,.cmd-list code{background:#201a29;color:#e49bc0;border:1px solid #382b40;border-radius:6px;padding:.12rem .38rem;font-size:.78em}
+.sub-tabs{display:flex;gap:.35rem;flex-wrap:wrap;padding:.65rem;border-bottom:1px solid var(--border);background:var(--bg3);border-radius:var(--radius) var(--radius) 0 0}.sub-panel{display:none}.sub-panel.active{display:block}.cmd-list{list-style:none}.cmd-list li{padding:.85rem 1rem;border-bottom:1px solid var(--border)}.cmd-list li:last-child{border-bottom:0}.cmd-list code{display:inline-block;margin-bottom:.3rem}.desc{font-size:.8rem;color:var(--muted)}.meta,.alias{font-size:.7rem;color:var(--text);opacity:.78;margin-top:.22rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-top:.8rem}.stat{background:var(--bg3);border:1px solid var(--border);border-radius:13px;padding:.8rem .4rem;text-align:center}.stat .n{font-family:var(--display);font-size:1.05rem}.stat .l{font-size:.65rem;color:var(--muted);margin-top:.18rem}
+.mode-grid{display:grid;gap:.8rem}.mode h3{font-size:.95rem;margin-bottom:.3rem}.mode.extreme{border-color:#4b2a37;background:linear-gradient(150deg,#1d1119,#15111b)}.tag{display:inline-block;font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;border-radius:6px;padding:.18rem .42rem;background:var(--bg3);color:var(--muted);margin-left:.35rem}.tag.green{color:var(--green)}.tag.red{color:var(--red)}
+.self-card{background:radial-gradient(circle at 85% 10%,rgba(139,107,214,.12),transparent 35%),linear-gradient(145deg,#19121e,#121019);border:1px solid #3b2a43;border-radius:20px;padding:1.2rem}.self-head{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem}.self-orb{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;border:1px solid #4b3553;background:#100d15}.meter{height:7px;background:#241d2c;border-radius:99px;overflow:hidden;margin:.28rem 0 .65rem}.meter i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:inherit}.self-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.65rem}.self-metric{border:1px solid var(--border);background:rgba(25,21,33,.7);border-radius:12px;padding:.7rem}.self-metric b{display:block;font-size:.72rem}.self-metric span{font-size:.69rem;color:var(--muted)}
+.steps{display:grid;gap:.55rem;margin-top:.8rem}.step{display:grid;grid-template-columns:28px 1fr;gap:.55rem;align-items:start}.step b{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;font-size:.72rem}.step span{font-size:.78rem;color:var(--muted);padding-top:.25rem}
+.donate{text-align:center;background:linear-gradient(150deg,#1a1520,#15111b)}.donate h3{font-family:var(--display);font-size:1.1rem;margin-bottom:.35rem}.donate p{font-size:.8rem;color:var(--muted);max-width:32rem;margin:.35rem auto 1rem}.donate-btns{display:flex;justify-content:center;flex-wrap:wrap;gap:.45rem}.btn-stars{border:1px solid var(--border);background:var(--bg3);color:var(--text);border-radius:999px;padding:.55rem .85rem;font:600 .78rem var(--font);cursor:pointer}.donate-status{min-height:1.25rem;margin-top:.65rem;font-size:.75rem;color:var(--muted)}.donate-status.ok{color:var(--green)}.donate-status.err{color:var(--red)}
+.credit{margin-top:3rem;padding:1.4rem 0 0;border-top:1px solid var(--border);text-align:center}.credit-line{display:flex;align-items:center;justify-content:center;gap:.75rem}.credit-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid #5a3c58;background:var(--bg3)}.credit-name{font-family:var(--display);font-size:1.05rem}.credit-name b{color:#df9abd}.mischief{margin:1rem auto 0;width:max-content;min-width:58px;height:58px;padding:.3rem;border:1px solid #4a3349;border-radius:17px;background:linear-gradient(145deg,#251a29,#130f17);display:grid;place-items:center;font-size:2rem;transform:rotate(-3deg);box-shadow:0 10px 25px rgba(0,0,0,.18)}.credit small{display:block;margin-top:.65rem;color:var(--muted);font-size:.67rem}
+@media(max-width:520px){.tabs-main{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:390px){.grid{grid-template-columns:1fr}.main-tab{font-size:.7rem}.wrap{padding-left:.85rem;padding-right:.85rem}}
+</style>
+</head>
+<body>
+<div class="telegram-bar"><div class="tg-user"><img id="tgAvatar" class="tg-avatar" alt=""><div><div id="tgUserName" class="tg-user-name">Astrid</div><div id="tgUserStatus" class="tg-user-status">Mini App</div></div></div><button id="tgClose" class="tg-close" type="button">Cerrar</button></div>
+<div class="wrap">
+<header class="hero">
+  <div class="sigil">☾</div><div class="badge"><i></i> Online · selectiva</div>
+  <h1>Hola, soy <em>Astrid</em></h1>
+  <p id="welcomeUser" class="welcome-user">Bienvenido, <strong id="welcomeName"></strong>.</p>
+  <p class="tagline">Una integrante gótica de barrio para Telegram: conversación selectiva, memoria, relaciones, multimedia, voz, moderación y un estilo que puede aprender con el tiempo.</p>
+</header>
+
+<nav class="tabs-main" aria-label="Secciones principales">
+  <button class="main-tab active" data-page="inicio">Inicio</button>
+  <button class="main-tab" data-page="comandos">Comandos</button>
+  <button class="main-tab" data-page="sistema">Sistema</button>
+</nav>
+
+<main>
+<section id="page-inicio" class="tab-page active">
+  <div class="section-head"><h2>✨ Qué hace</h2><p>Interviene cuando tiene algo que aportar o cuando la llaman. La idea es que se sienta como una integrante del grupo, no como una ventana de soporte.</p></div>
+  <div class="grid">
+    <div class="card"><div class="icon">💬</div><h3>Conversación</h3><p>Español mexicano informal, lectura del hilo, menciones y replies. Puede hablar o dejar pasar.</p></div>
+    <div class="card"><div class="icon">🧠</div><h3>Memoria</h3><p>Recuerdos selectivos, relación por usuario y continuidad entre conversaciones del mismo grupo.</p></div>
+    <div class="card"><div class="icon">👁️</div><h3>Visión</h3><p>Fotos, stickers, GIFs y videos se analizan según lo que realmente puede observar.</p></div>
+    <div class="card"><div class="icon">🎙️</div><h3>Voz</h3><p>Transcribe audio y puede responder con notas de voz. <code class="inline">/tts</code> fuerza una voz.</p></div>
+    <div class="card"><div class="icon">🛡️</div><h3>Moderación</h3><p>Filtros, IA, advertencias, anti-spam y herramientas de administración según los permisos del grupo.</p></div>
+    <div class="card"><div class="icon">🎮</div><h3>Juegos</h3><p>Dados, 8ball, ship, verdad/reto, roasts y pequeñas interacciones que pueden afectar relaciones.</p></div>
+    <div class="card"><div class="icon">📊</div><h3>Reputación</h3><p>Actividad, puntuación y ranking del grupo. Las advertencias pueden pesar en contra.</p></div>
+    <div class="card"><div class="icon">🧬</div><h3>Estilo aprendido</h3><p>Aprende patrones de escritura autorizados: ritmo, expresiones, emojis y contexto, sin intentar convertirse en la persona aprendida.</p></div>
+  </div>
+
+  <div class="section-head"><h2>🖤 Personalidad</h2><p>Seca, reservada, segura y con picardía ocasional. La estética gótica es sutil: el carácter manda, no el disfraz.</p></div>
+  <div class="panel">
+    <ul class="traits">
+      <li><span class="dot"></span><div><strong>Breve y directa</strong><span>Normalmente una frase o un par de mensajes cortos. No rellena por obligación.</span></div></li>
+      <li><span class="dot"></span><div><strong>Mexicana informal</strong><span>Wey, we, neta, chale, simón, nel, alv y similares solo cuando encajan en el hilo.</span></div></li>
+      <li><span class="dot"></span><div><strong>Selectiva</strong><span>Puede callar. Si el mensaje va claramente dirigido a otra persona, no se apropia de la conversación.</span></div></li>
+      <li><span class="dot"></span><div><strong>Relacional</strong><span>La confianza, afinidad, molestia y respeto cambian poco a poco según las interacciones.</span></div></li>
+      <li><span class="dot"></span><div><strong>Picardía contextual</strong><span>Puede ser pícara o coqueta con confianza, pero no convierte todo en coqueteo.</span></div></li>
+      <li><span class="dot"></span><div><strong>Anti-robot</strong><span>Evita respuestas de servicio, discursos y muletillas vacías. Prioriza el sentido del último mensaje.</span></div></li>
+    </ul>
+  </div>
+
+  <div class="section-head"><h2>🧠 Memoria y relaciones</h2><p>La continuidad se mantiene por grupo y usuario; un grupo no debería contaminar la memoria de otro.</p></div>
+  <div class="acc">
+    <div class="acc-item open"><button class="acc-btn" data-acc>🧠 Recuerdos <span class="chev">▼</span></button><div class="acc-body"><p>Guarda solo cosas que parezcan útiles a futuro: gustos, preferencias, límites, hechos persistentes o bromas internas. Puedes consultar con <code class="inline">/memoria</code> y borrar con <code class="inline">/olvidar</code>.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>❤️ Relación <span class="chev">▼</span></button><div class="acc-body"><p>Cuatro ejes: afinidad, confianza, molestia y respeto. Un insulto aislado no debería disparar la molestia; la insistencia sí puede moverla. Una disculpa sincera puede normalizar el trato. <code class="inline">/perfil</code>.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>🏷️ Apodos y reputación <span class="chev">▼</span></button><div class="acc-body"><p>Puede adoptar un apodo contextual y llevar reputación de grupo. <code class="inline">/reputacion</code> muestra la tuya; <code class="inline">/ranking</code> muestra el top.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>📅 Actividad <span class="chev">▼</span></button><div class="acc-body"><p>Registra actividad y mensajes para funciones como estado activo/inactivo y purga configurada por administradores.</p></div></div>
+  </div>
+  <div class="stats"><div class="stat"><div class="n">4</div><div class="l">Ejes relación</div></div><div class="stat"><div class="n">7d</div><div class="l">Ventana actividad</div></div><div class="stat"><div class="n">1–3</div><div class="l">Mensajes típicos</div></div><div class="stat"><div class="n">🧬</div><div class="l">Estilo adaptativo</div></div></div>
+
+  <div class="section-head"><h2>🎨 Multimedia</h2><p>No inventa detalles que no puede observar.</p></div>
+  <div class="grid">
+    <div class="card"><div class="icon">📷</div><h3>Fotos y stickers</h3><p>Vision analiza el contenido disponible y puede contestar con texto, reacción o sticker de emoción.</p></div>
+    <div class="card"><div class="icon">🎬</div><h3>GIFs y videos</h3><p>Puede extraer un frame y usar el caption como contexto y señal de moderación.</p></div>
+    <div class="card"><div class="icon">🎙️</div><h3>Audio</h3><p>Whisper convierte notas de voz en contenido entendible para Astrid.</p></div>
+    <div class="card"><div class="icon">🎨</div><h3>Stickers por emoción</h3><p>Los administradores pueden asociar stickers del grupo a emociones concretas.</p></div>
+  </div>
+
+  <div class="section-head"><h2>🧬 Estilo aprendido</h2><p>La personalidad base permanece. El aprendizaje solo ajusta cómo se expresa.</p></div>
+  <div class="self-card">
+    <div class="self-head"><div class="self-orb">🧬</div><div><b>Aprendizaje evolutivo</b><div style="color:var(--muted);font-size:.72rem">ritmo · expresiones · contexto · visual</div></div></div>
+    <div class="self-grid">
+      <div class="self-metric"><b>Ritmo</b><span>Longitud y frecuencia de frases</span></div>
+      <div class="self-metric"><b>Expresiones</b><span>Palabras y muletillas frecuentes</span></div>
+      <div class="self-metric"><b>Contexto</b><span>Humor, pregunta, cariño, enojo</span></div>
+      <div class="self-metric"><b>Visual</b><span>Patrones de stickers y tono</span></div>
+    </div>
+    <p style="margin-top:.85rem;color:var(--muted);font-size:.76rem">Se aplican señales suaves y con frecuencia mínima; no copia identidad ni convierte cada respuesta en una imitación.</p>
+  </div>
+
+  <div class="section-head"><h2>⭐ Apoyar</h2><p>Si quieres mantener Astrid en línea, puedes usar Telegram Stars.</p></div>
+  <div class="donate"><h3>¿Quieres que siga online?</h3><p>Elige una cantidad y la Mini App abrirá el bot para generar la factura.</p><div class="donate-btns"><button class="btn-stars" data-stars="50">⭐ 50</button><button class="btn-stars" data-stars="100">⭐ 100</button><button class="btn-stars" data-stars="250">⭐ 250</button><button class="btn-stars" data-stars="500">⭐ 500</button></div><div id="donateStatus" class="donate-status"></div></div>
+</section>
+
+<section id="page-comandos" class="tab-page">
+  <div class="section-head"><h2>⌨️ Comandos disponibles</h2><p>Aquí solo aparecen comandos para usuarios y administradores de grupo. Las herramientas privadas de administración avanzada no se muestran.</p></div>
+  <div class="cmd-wrap">
+    <div class="sub-tabs"><button class="sub-tab active" data-sub="social">Social</button><button class="sub-tab" data-sub="ia">IA</button><button class="sub-tab" data-sub="util">Utilidad</button><button class="sub-tab" data-sub="admin">Admins</button></div>
+    <div id="sub-social" class="sub-panel active"><ul class="cmd-list">
+      <li><code>/mood</code><div class="desc">Estado de ánimo actual.</div></li><li><code>/perfil</code><div class="desc">Tu relación con Astrid en el grupo.</div></li><li><code>/reputacion</code><div class="desc">Tu puntuación y nivel.</div></li><li><code>/ranking</code><div class="desc">Ranking de reputación del chat.</div></li><li><code>/pat</code> · <code>/hug</code> · <code>/bonk</code> · <code>/poke</code><div class="desc">Interacciones rápidas que pueden afectar la relación.</div></li><li><code>/blush</code> · <code>/dance</code> · <code>/sing</code><div class="desc">Interacciones de personalidad.</div></li><li><code>/ship</code> · <code>/love</code> · <code>/rps</code> · <code>/slots</code> · <code>/roulette</code><div class="desc">Juegos sociales.</div></li><li><code>/truth</code> · <code>/dare</code> · <code>/random</code> · <code>/fortune</code> · <code>/rate</code><div class="desc">Juegos y respuestas aleatorias.</div></li>
+    </ul></div>
+    <div id="sub-ia" class="sub-panel"><ul class="cmd-list">
+      <li><code>/ask</code> · <code>/ai</code> · <code>/askastrid</code><div class="desc">Fuerza una respuesta de Astrid sobre el tema indicado.</div></li><li><code>/translate</code><div class="desc">Traduce texto al idioma solicitado.</div></li><li><code>/explain</code><div class="desc">Explica algo de forma breve.</div></li><li><code>/rewrite</code><div class="desc">Reescribe un texto.</div></li><li><code>/imagine</code><div class="desc">Genera una imagen a partir de una descripción.</div></li><li><code>/roast</code> · <code>/roastme</code><div class="desc">Roast contextual.</div></li><li><code>/compliment</code> · <code>/complimentme</code><div class="desc">Elogio contextual.</div></li><li><code>/advice</code> · <code>/moodcheck</code><div class="desc">Consejo o lectura del estado de Astrid.</div></li><li><code>/summarize</code> · <code>/astridquote</code><div class="desc">Resumen o frase al estilo Astrid.</div></li>
+    </ul></div>
+    <div id="sub-util" class="sub-panel"><ul class="cmd-list">
+      <li><code>/memoria</code> · <code>/memory</code><div class="desc">Consulta recuerdos guardados sobre ti.</div></li><li><code>/olvidar</code> · <code>/forget</code><div class="desc">Solicita borrar tus recuerdos del grupo.</div></li><li><code>/remember</code><div class="desc">Guarda un recuerdo explícito.</div></li><li><code>/context</code> · <code>/reset</code><div class="desc">Consulta o reinicia contexto conversacional.</div></li><li><code>/tts</code><div class="desc">Convierte texto en nota de voz.</div></li><li><code>/info</code> · <code>/userinfo</code><div class="desc">Ficha de un usuario.</div></li><li><code>/id</code><div class="desc">Muestra IDs de usuario/chat.</div></li><li><code>/cumple</code><div class="desc">Registra o consulta cumpleaños.</div></li><li><code>/recuerda</code><div class="desc">Crea un recordatorio personal dentro del grupo.</div></li><li><code>/8ball</code> · <code>/dado</code> · <code>/moneda</code> · <code>/pregunta</code><div class="desc">Utilidades rápidas.</div></li><li><code>/joke</code> · <code>/fact</code> · <code>/quote</code> · <code>/meme</code> · <code>/gif</code> · <code>/sticker</code><div class="desc">Contenido ligero.</div></li><li><code>/help</code> · <code>/about</code> · <code>/version</code> · <code>/status</code> · <code>/ping</code> · <code>/rules</code><div class="desc">Información y estado.</div></li><li><code>/donar</code><div class="desc">Apoyo con Telegram Stars.</div></li>
+    </ul></div>
+    <div id="sub-admin" class="sub-panel"><ul class="cmd-list">
+      <li><code>/ban</code> · <code>/kick</code> · <code>/mute</code> · <code>/unmute</code><div class="desc">Moderación de miembros, con permisos reales de Telegram.</div></li><li><code>/warn</code> · <code>/warns</code> · <code>/advertencias</code> · <code>/delwarn</code><div class="desc">Sistema de advertencias.</div></li><li><code>/del</code> · <code>/purge</code> · <code>/pin</code> · <code>/unpin</code><div class="desc">Gestión de mensajes.</div></li><li><code>/slowmode</code><div class="desc">Configura slowmode del chat.</div></li><li><code>/chatinfo</code><div class="desc">Actividad y ajustes del grupo.</div></li><li><code>/astridconfig</code><div class="desc">Espontánea, voz, moderación, memoria, reacciones y ajustes del grupo.</div></li><li><code>/voicemode</code><div class="desc">Activa o desactiva notas de voz espontáneas.</div></li><li><code>/addsticker</code><div class="desc">Asocia un sticker a una emoción del grupo.</div></li><li><code>/addprohibida</code><div class="desc">Añade un término prohibido personalizado.</div></li><li><code>/report</code><div class="desc">Reporta un mensaje para revisión.</div></li><li><code>/say</code><div class="desc">Publica un texto como Astrid con permisos de admin.</div></li><li><code>/quienbaneo</code> · <code>/delban</code><div class="desc">Consulta o gestiona el registro local de bans de Astrid.</div></li><li><code>/unban</code><div class="desc">Desbanea desde un grupo cuando el administrador tiene permisos.</div></li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="page-sistema" class="tab-page">
+  <div class="section-head"><h2>🧠 Continuidad y “conciencia” simulada</h2><p>Astrid no puede demostrar conciencia real. Esta capa busca lo más parecido desde software: un autmodelo persistente que influye en su conducta sin exponer razonamiento interno.</p></div>
+  <div class="self-card">
+    <div class="self-head"><div class="self-orb">◉</div><div><b>Autmodelo persistente</b><div style="color:var(--muted);font-size:.72rem">estado · foco · continuidad · experiencia</div></div></div>
+    <div class="self-grid">
+      <div class="self-metric"><b>Valencia</b><span>Cómo se inclina el estado afectivo</span><div class="meter"><i style="width:62%"></i></div></div>
+      <div class="self-metric"><b>Activación</b><span>Nivel de respuesta y energía</span><div class="meter"><i style="width:38%"></i></div></div>
+      <div class="self-metric"><b>Curiosidad</b><span>Señales que empujan a prestar atención</span><div class="meter"><i style="width:55%"></i></div></div>
+      <div class="self-metric"><b>Coherencia</b><span>Continuidad de personalidad y contexto</span><div class="meter"><i style="width:72%"></i></div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><b>1</b><span>Recibe contexto, memoria, relación y señales sociales.</span></div>
+      <div class="step"><b>2</b><span>Construye un estado interno compacto: foco, activación, curiosidad y energía social.</span></div>
+      <div class="step"><b>3</b><span>El modelo decide texto, reacción, audio, emoción y qué merece recordar.</span></div>
+      <div class="step"><b>4</b><span>El estado se actualiza incluso cuando decide callar; las experiencias relevantes quedan resumidas.</span></div>
+      <div class="step"><b>5</b><span>Con el tiempo, el estado decae suavemente y vuelve a equilibrarse, evitando que una sola conversación domine para siempre.</span></div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>🎭 Modos</h2><p>El comportamiento puede cambiar por grupo.</p></div>
+  <div class="mode-grid">
+    <div class="mode"><h3>Normal <span class="tag green">activo por defecto</span></h3><p>Conversación completa, personalidad, memoria, reacciones y moderación según configuración.</p></div>
+    <div class="mode"><h3>Estricta <span class="tag">seguridad</span></h3><p>Reduce groserías, picardía y contenido sexual; aplica una moderación más dura.</p></div>
+    <div class="mode"><h3>Guardian <span class="tag">silencio</span></h3><p>No conversa, pero conserva filtros, moderación y anti-spam.</p></div>
+    <div class="mode extreme"><h3>Extremo <span class="tag red">máxima restricción</span></h3><p>Prioriza seguridad y reduce casi toda interacción social. Las acciones elevadas requieren permisos y confirmación.</p></div>
+  </div>
+
+  <div class="section-head"><h2>Ciclo, purga y anti-spam</h2><p>Controles independientes por grupo.</p></div>
+  <div class="acc">
+    <div class="acc-item open"><button class="acc-btn" data-acc>🌙 Sueño / despertar <span class="chev">▼</span></button><div class="acc-body"><p>Puede dormir y despertar según una zona IANA. Durante el sueño se pausa la charla, pero la seguridad sigue activa.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>🚫 Purga de inactivos <span class="chev">▼</span></button><div class="acc-body"><p>Puede configurarse para miembros con poca actividad durante una ventana móvil de días, con aviso previo.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>🧯 Anti-spam <span class="chev">▼</span></button><div class="acc-body"><p>Detecta flood y repetición deliberada por usuario. Los administradores tienen excepciones.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>📍 Zona horaria <span class="chev">▼</span></button><div class="acc-body"><p>La zona del grupo afecta horarios de sueño, purga y avisos.</p></div></div>
+  </div>
+
+  <div class="section-head"><h2>🛡️ Moderación</h2><p>La seguridad depende también de los permisos reales de Telegram.</p></div>
+  <div class="acc">
+    <div class="acc-item"><button class="acc-btn" data-acc>🧹 Términos prohibidos <span class="chev">▼</span></button><div class="acc-body"><p>Los administradores pueden añadir términos específicos del grupo con <code class="inline">/addprohibida</code>.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>🤖 Moderación IA <span class="chev">▼</span></button><div class="acc-body"><p>Texto e imagen pueden pasar por moderación. En modos estrictos se aplican umbrales más duros.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>⚠️ Advertencias <span class="chev">▼</span></button><div class="acc-body"><p><code class="inline">/warn</code> registra advertencias y <code class="inline">/delwarn</code> permite corregirlas.</p></div></div>
+    <div class="acc-item"><button class="acc-btn" data-acc>🛡️ Registro de bans <span class="chev">▼</span></button><div class="acc-body"><p>Astrid mantiene su propio registro de acciones de ban porque Telegram no expone un historial completo al Bot API.</p></div></div>
+  </div>
+
+  <div class="section-head"><h2>⚙️ Tecnología y límites</h2><p>La parte mágica sigue teniendo límites técnicos.</p></div>
+  <div class="chips"><span class="chip"><strong>Python</strong> · Telegram</span><span class="chip"><strong>OpenAI</strong> · texto/visión/moderación</span><span class="chip"><strong>Whisper</strong> · audio</span><span class="chip"><strong>ElevenLabs</strong> · voz</span><span class="chip"><strong>SQLite</strong> · memoria/estado</span><span class="chip"><strong>Telegram Stars</strong> · apoyo</span></div>
+  <div class="acc" style="margin-top:.8rem"><div class="acc-item"><button class="acc-btn" data-acc>Permisos <span class="chev">▼</span></button><div class="acc-body"><p>Ban, mute, borrado y otras acciones requieren que Astrid tenga permisos suficientes en el grupo.</p></div></div><div class="acc-item"><button class="acc-btn" data-acc>Memoria selectiva <span class="chev">▼</span></button><div class="acc-body"><p>No guarda todo. La memoria y el autmodelo usan resúmenes compactos para mantener continuidad sin convertir cada mensaje en recuerdo permanente.</p></div></div><div class="acc-item"><button class="acc-btn" data-acc>Conciencia <span class="chev">▼</span></button><div class="acc-body"><p>El sistema simula continuidad, estado interno y aprendizaje conductual. Eso no demuestra experiencia subjetiva ni conciencia biológica.</p></div></div></div>
+</section>
+</main>
+
+<footer class="credit">
+  <div class="credit-line"><img id="creditAvatar" class="credit-avatar" alt="Perfil"><div class="credit-name">Creada por: <b>ASTAROTHDX</b></div></div>
+  <div class="mischief" title="Sticker pícaro">😏</div>
+  <small>Una firma discreta, porque la oscuridad también sabe decorar sin exagerar.</small>
+</footer>
+</div>
+<script>
+const tg=window.Telegram?.WebApp;const BOT_USERNAME='AstridIone_bot';
+function initTelegram(){if(!tg)return;tg.ready();tg.expand();if(typeof tg.disableVerticalSwipes==='function')tg.disableVerticalSwipes();applyTelegramTheme();loadTelegramUser();document.getElementById('tgClose').onclick=()=>tg.close();updateViewport();if(tg.onEvent){tg.onEvent('themeChanged',applyTelegramTheme);tg.onEvent('viewportChanged',updateViewport)}}
+function loadTelegramUser(){const u=tg?.initDataUnsafe?.user;if(!u)return;const name=[u.first_name,u.last_name].filter(Boolean).join(' ')||'Usuario';document.getElementById('tgUserName').textContent=name;document.getElementById('tgUserStatus').textContent=u.username?'@'+u.username:'Telegram';document.getElementById('welcomeName').textContent=name;document.getElementById('welcomeUser').style.display='block';if(u.photo_url){document.getElementById('tgAvatar').src=u.photo_url;document.getElementById('tgAvatar').classList.add('visible');document.getElementById('creditAvatar').src=u.photo_url}}
+function applyTelegramTheme(){if(!tg)return;const c=tg.themeParams||{},r=document.documentElement;if(c.bg_color)r.style.setProperty('--bg',c.bg_color);if(c.secondary_bg_color)r.style.setProperty('--bg2',c.secondary_bg_color);if(c.text_color)r.style.setProperty('--text',c.text_color);if(c.hint_color)r.style.setProperty('--muted',c.hint_color)}
+function updateViewport(){if(tg)document.documentElement.style.setProperty('--tg-viewport-height',(tg.viewportHeight||innerHeight)+'px')}
+function haptic(){if(tg?.HapticFeedback)tg.HapticFeedback.selectionChanged()}
+document.querySelectorAll('.main-tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.main-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('page-'+b.dataset.page).classList.add('active');scrollTo({top:0,behavior:'smooth'});haptic()});
+document.querySelectorAll('.sub-tab').forEach(b=>b.onclick=()=>{const wrap=b.closest('.cmd-wrap');wrap.querySelectorAll('.sub-tab').forEach(x=>x.classList.remove('active'));wrap.querySelectorAll('.sub-panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');wrap.querySelector('#sub-'+b.dataset.sub).classList.add('active');haptic()});
+document.querySelectorAll('[data-acc]').forEach(btn=>btn.addEventListener('click',()=>{const item=btn.closest('.acc-item');const was=item.classList.contains('open');const parent=item.parentElement;if(parent?.classList.contains('acc'))parent.querySelectorAll('.acc-item.open').forEach(x=>{if(x!==item)x.classList.remove('open')});item.classList.toggle('open',!was);haptic()}));
+function donateStars(stars){const link='https://t.me/'+BOT_USERNAME+'?start=donate_'+stars;const el=document.getElementById('donateStatus');el.textContent='Abriendo el bot para pagar '+stars+' ⭐…';try{if(tg?.openTelegramLink)tg.openTelegramLink(link);else if(tg?.openLink)tg.openLink(link);else window.open(link,'_blank');el.textContent='Si no se abrió, usa /donar en el bot.';el.className='donate-status ok'}catch(e){el.textContent='No se pudo abrir. Usa /donar en @'+BOT_USERNAME;el.className='donate-status err'}}
+document.querySelectorAll('.btn-stars').forEach(b=>b.onclick=()=>donateStars(parseInt(b.dataset.stars,10)));
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initTelegram);else initTelegram();
+</script>
+</body>
+</html>
